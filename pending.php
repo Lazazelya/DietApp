@@ -17,7 +17,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-$is_admin = $user['role_id'] == 2; // Предположим, что 1 — это роль администратора
+$is_admin = $user['role_id'] == 2; // Предположим, что 2 — это роль администратора
 
 if (!$is_admin) {
     echo "У вас нет прав для доступа к этой странице.";
@@ -60,15 +60,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Рассмотрение программ тренировок</title>
     <style>
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
             background-color: #bdacbb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-top: 50px;
+            text-align: center;
         }
 
         .container {
             width: 80%;
-            margin: 0 auto;
+            max-width: 1200px;
             padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
         }
 
         table {
@@ -77,22 +90,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-top: 20px;
         }
 
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
         th, td {
             padding: 10px;
-            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(139, 83, 179, 0.62);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
 
         button {
-            padding: 5px 10px;
-            background-color: #5cb85c;
+            padding: 8px 16px;
+            background-color: rgba(139, 83, 179, 0.62);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
         }
 
         button.reject {
             background-color: #d9534f;
+        }
+
+        button:hover {
+            background-color: #715ac8;
         }
 
         .message {
@@ -101,15 +131,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-radius: 5px;
         }
 
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
         .error {
             background-color: #f8d7da;
             color: #721c24;
         }
 
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
     </style>
 </head>
 <body>

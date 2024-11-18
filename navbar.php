@@ -31,9 +31,10 @@ if ($user_id) {
                 <li><a href="food_catalog.php">Каталог продуктов</a></li>
                 <li><a href="add_food.php">Добавить продукт</a></li>
                 <li><a href="delete_user.php">Удалить пользователя</a></li>
-                <li><a href="pending.php">Рассмотрение тренировок</li>
-<!--             <li><a href="backup.php">Бэкап</a></li>-->
+             <li><a href="pending.php">Рассмотрение тренировок</a></li>
                 <li><a href="logout.php">Выйти</a></li>
+<!--             <li><a href="backup.php">Бэкап</a></li>-->
+               
             <?php elseif ($is_trainer): ?>
 
                 <li><a href="trainer_programs.php">Создать программу</a></li>

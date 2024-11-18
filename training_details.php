@@ -151,12 +151,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['complete_training']) &
     <p class="duration">Длительность: <?php echo htmlspecialchars($program['duration']); ?> минут</p>
     <p class="calories">Калории: <?php echo htmlspecialchars($program['calories_burned']); ?> ккал</p>
 
-    <form method="POST" action="like_training.php">
-        <input type="hidden" name="training_id" value="<?php echo htmlspecialchars($program['id']); ?>">
-        <button type="submit" class="btn">
-            Лайк (<?php echo isset($program['like_count']) ? htmlspecialchars($program['like_count']) : 0; ?>)
-        </button>
-    </form>
+    <?php if (!$is_trainer): // Только пользователи могут ставить лайки ?>
+        <form method="POST" action="like_training.php">
+            <input type="hidden" name="training_id" value="<?php echo htmlspecialchars($program['id']); ?>">
+            <button type="submit" class="btn">
+                Лайк (<?php echo isset($program['like_count']) ? htmlspecialchars($program['like_count']) : 0; ?>)
+            </button>
+        </form>
+    <?php endif; ?>
 
     <form method="POST" action="">
         <?php if ($is_trainer): ?>
