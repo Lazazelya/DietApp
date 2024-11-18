@@ -31,12 +31,16 @@ if ($user_id) {
                 <li><a href="food_catalog.php">Каталог продуктов</a></li>
                 <li><a href="add_food.php">Добавить продукт</a></li>
                 <li><a href="delete_user.php">Удалить пользователя</a></li>
-             <li><a href="pending.php">Рассмотрение тренировок</a></li>
+                <li><a href="pending.php">Рассмотрение тренировок</a></li>
+
+<!--  <li><a href="admin_rating_weights.php">Веса тренера</a></li>-->
+                <li><a href="training_rating_weights.php">Веса </a></li>
                 <li><a href="logout.php">Выйти</a></li>
 <!--             <li><a href="backup.php">Бэкап</a></li>-->
                
             <?php elseif ($is_trainer): ?>
-
+               
+                <li><a href=" training_requests.php">Запросы</a></li>
                 <li><a href="trainer_programs.php">Создать программу</a></li>
                 <li><a href="training_overview.php">Статистика</a></li>
                 <li><a href="logout.php">Выйти</a></li>
@@ -45,6 +49,7 @@ if ($user_id) {
                 <li><a href="food_tracker.php">Доступные продукты</a></li>
                 <li><a href="train_choose.php">Доступные тренировки</a></li>
                 <li><a href="workout_history.php">История тренировок</a></li>
+                <li><a href="my_training_requests.php">Тренировок</a></li>
                 <li><a href="calories_tracker.php">Трекер</a></li>
                 <li><a href="profile.php">Профиль</a></li>
                 <li><a href="logout.php">Выйти</a></li>

@@ -10,21 +10,19 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Проверка роли администратора
 $stmt = $conn->prepare("SELECT role_id FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-$is_admin = $user['role_id'] == 2; // Предположим, что 2 — это роль администратора
+$is_admin = $user['role_id'] == 2;
 
 if (!$is_admin) {
     echo "У вас нет прав для доступа к этой странице.";
     exit();
 }
 
-// Получаем программы со статусом 'pending'
 $stmt = $conn->prepare("SELECT id, name, description, created_by, training_type_id, duration, calories_burned FROM training_programs WHERE status = 'pending'");
 $stmt->execute();
 $programs_result = $stmt->get_result();
@@ -32,7 +30,7 @@ $programs = $programs_result->fetch_all(MYSQLI_ASSOC);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $program_id = $_POST['program_id'];
-    $action = $_POST['action'];  // 'approve' или 'reject'
+    $action = $_POST['action']; 
 
     if ($action == 'approve') {
         $stmt = $conn->prepare("UPDATE training_programs SET status = 'approved' WHERE id = ?");

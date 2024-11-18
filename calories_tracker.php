@@ -9,18 +9,16 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$current_date = date('Y-m-d'); // Получаем текущую дату
+$current_date = date('Y-m-d'); 
 
-// Удаление продукта за текущую дату
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
     $product_id = $_POST['product_id'];
 
-    // Удаление продукта только за текущий день
+
     $stmt = $conn->prepare("DELETE FROM calorie_tracker WHERE product_id = ? AND user_id = ? AND entry_date = ?");
     $stmt->bind_param("iis", $product_id, $user_id, $current_date);
     $stmt->execute();
 
-    // Пересчет калорий за текущий день
     $stmt = $conn->prepare("SELECT SUM(calories) AS total_calories FROM calorie_tracker WHERE user_id = ? AND entry_date = ?");
     $stmt->bind_param("is", $user_id, $current_date);
     $stmt->execute();
@@ -38,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
     exit();
 }
 
-// Получаем информацию о пользователе и сожженных калориях за текущий день
 $stmt = $conn->prepare("SELECT u.daily_calories, u.age, u.weight, u.height, u.gender, u.activity_level
                         FROM users u
                         WHERE u.id = ?");
@@ -49,7 +46,6 @@ $user = $result->fetch_assoc();
 
 $current_daily_calories = $user['daily_calories'];
 
-// Запрос для получения сожженных калорий за тренировки, выполненные сегодня
 $stmt = $conn->prepare("SELECT SUM(tp.calories_burned) AS calories_burned_today
                         FROM training_executions te
                         JOIN training_programs tp ON te.training_id = tp.id
@@ -60,7 +56,6 @@ $result = $stmt->get_result();
 $row = $result->fetch_assoc();
 $calories_burned = $row['calories_burned_today'] ?? 0;  
 
-// Вычисляем BMR и суточную норму калорий
 if (isset($user['age'], $user['weight'], $user['height'], $user['gender'], $user['activity_level'])) {
     if ($user['gender'] == 'male') {
         $bmr = 88.36 + (13.4 * $user['weight']) + (4.8 * $user['height']) - (5.7 * $user['age']);
@@ -68,7 +63,6 @@ if (isset($user['age'], $user['weight'], $user['height'], $user['gender'], $user
         $bmr = 447.6 + (9.2 * $user['weight']) + (3.1 * $user['height']) - (4.3 * $user['age']);
     }
 
-    // Уровни активности
     switch ($user['activity_level']) {
         case 'sedentary':
             $calorie_needs = $bmr * 1.2;
@@ -93,7 +87,6 @@ if (isset($user['age'], $user['weight'], $user['height'], $user['gender'], $user
     $calorie_needs = null;
 }
 
-// Получаем продукты, добавленные сегодня, и их калории
 $stmt = $conn->prepare("SELECT calorie_tracker.product_id, food_products.name, calorie_tracker.calories
                         FROM calorie_tracker
                         JOIN food_products ON calorie_tracker.product_id = food_products.id
@@ -109,10 +102,9 @@ while ($row = $calorie_results->fetch_assoc()) {
     $total_calories_consumed += $row['calories'];
 }
 
-// Чистые калории (потребленные минус сожженные)
 $net_calories = $total_calories_consumed - $calories_burned;
 
-$calorie_limit = 20000; // Лимит калорий для предупреждения
+$calorie_limit = 20000; 
 ?>
 
 <!DOCTYPE html>

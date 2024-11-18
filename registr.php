@@ -88,7 +88,7 @@ $conn->close();
         border: 1px solid #d8d7d7;
         border-radius: 5px;
     }
-    }
+    
     .form-container button:hover {
         background-color: #715ac8;
     }

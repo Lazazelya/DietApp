@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_program'])) {
     } elseif (empty($description)) {
         $error_message = "Описание программы не может состоять только из пробелов! Исправьте неточность.";
     } else {
-        $status = 'pending'; // Устанавливаем статус как "на рассмотрении"
+        $status = 'pending'; 
         $stmt = $conn->prepare("
             INSERT INTO training_programs (name, description, created_by, training_type_id, duration, calories_burned, status, created_at) 
             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())

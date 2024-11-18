@@ -42,7 +42,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add']) && $current_dai
     $product_id = $_POST['product_id'];
     $amount = $_POST['amount'];
 
-    // Вызов хранимой процедуры add_calories
     $stmt = $conn->prepare("CALL add_calories(?, ?, ?)");
     $stmt->bind_param("iid", $user_id, $product_id, $amount);
     $stmt->execute();

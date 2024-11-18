@@ -3,7 +3,6 @@ session_start();
 require 'db.php';
 include 'navbar.php';
 
-// Redirect to login if user is not authenticated
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -11,7 +10,23 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Fetch trainer's information and performance metrics
+$weights_stmt = $conn->prepare("SELECT approved_weight, likes_weight, execution_weight FROM rating_weights LIMIT 1");
+$weights_stmt->execute();
+$weights = $weights_stmt->get_result()->fetch_assoc();
+
+if ($weights) {
+    $approved_weight = (float) $weights['approved_weight'];
+    $likes_weight = (float) $weights['likes_weight'];
+    $execution_weight = (float) $weights['execution_weight'];
+} else {
+    
+    $approved_weight = 0.0;
+    $likes_weight = 0.0;
+    $execution_weight = 0.0;
+  
+}
+
+
 $stmt = $conn->prepare("
     SELECT 
         u.username,
@@ -35,27 +50,19 @@ if ($trainer_rating && isset($trainer_rating['username'])) {
     $rejected_count = $trainer_rating['rejected_count'] ?: 0;
     $total_executions = $trainer_rating['total_executions'] ?: 0;
 
-    // Calculate total training programs (approved + rejected)
     $approved_total = $approved_count + $rejected_count;
-
-    // Calculate approval ratio from 0 to 1
     $approval_ratio = $approved_total > 0 ? $approved_count / $approved_total : 0;
-
-    // Calculate like ratio based on all training programs (approved + rejected)
     $like_ratio = $approved_total > 0 ? $trainer_rating['total_likes'] / $approved_total : 0;
-
-    // Calculate execution ratio (1 if there are executions, otherwise 0)
     $execution_ratio = ($total_executions > 0) ? 1 : 0;
 
-    // Overall rating from 0 to 10
-    $overall_rating = round(($approval_ratio * 4 + $like_ratio * 5 + $execution_ratio * 1), 1);
+   
+    $overall_rating = round(($approval_ratio * $approved_weight + $like_ratio * $likes_weight + $execution_ratio * $execution_weight), 1);
 } else {
     $error_message = "Пользователь не найден или данные отсутствуют.";
-    $current_username = "Неизвестный пользователь";  // Default value
+    $current_username = "Неизвестный пользователь";  
 }
 
 
-// Update username if form submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_username'])) {
     $new_username = trim($_POST['new_username']);
     if (empty($new_username)) {
@@ -66,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_username'])) {
         if ($stmt->execute()) {
             $success_message = "Имя пользователя успешно обновлено!";
             $_SESSION['username'] = $new_username;
-            $current_username = $new_username;  // Update displayed name
+            $current_username = $new_username;  
         } else {
             $error_message = "Ошибка при обновлении имени пользователя: " . $stmt->error;
         }
@@ -74,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_username'])) {
     }
 }
 
-// Fetch training programs created by the user
+
 $stmt = $conn->prepare("
     SELECT 
         t.id, 
@@ -96,12 +103,10 @@ $stmt = $conn->prepare("
     GROUP BY t.id
     ORDER BY t.id DESC
 ");
-
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $programs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-// Count approved and rejected training programs
 $approved_count = 0;
 $rejected_count = 0;
 

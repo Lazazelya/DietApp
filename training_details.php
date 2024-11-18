@@ -3,7 +3,7 @@ session_start();
 require 'db.php';
 include 'navbar.php';
 
-// Проверка наличия идентификатора тренировки и сессии пользователя
+
 if (!isset($_GET['id']) || !isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -12,55 +12,54 @@ if (!isset($_GET['id']) || !isset($_SESSION['user_id'])) {
 $training_id = $_GET['id'];
 $user_id = $_SESSION['user_id'];
 
-// Получение информации о пользователе
 $stmt = $conn->prepare("SELECT role_id FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user_info = $stmt->get_result()->fetch_assoc();
 $user_role = $user_info['role_id'];
 
-// Получение информации о тренировке
 $stmt = $conn->prepare("
     SELECT
-        t.id,  -- Добавляем id тренировки для использования в кнопке лайка
+        t.id, 
         t.name,
         t.description,
         t.duration,
         t.calories_burned,
         u.username AS trainer_name,
         t.created_by,
-        COUNT(tl.id) AS like_count  -- Получаем количество лайков
+        COUNT(tl.id) AS like_count  
     FROM training_programs t
     JOIN users u ON t.created_by = u.id
-    LEFT JOIN training_likes tl ON t.id = tl.training_id  -- Подключаем лайки
+    LEFT JOIN training_likes tl ON t.id = tl.training_id  
     WHERE t.id = ?
-    GROUP BY t.id  -- Группируем по id тренировки
+    GROUP BY t.id  
 ");
 $stmt->bind_param("i", $training_id);
 $stmt->execute();
 $program = $stmt->get_result()->fetch_assoc();
 
-// Проверяем, является ли текущий пользователь тренером или он создал тренировку
 $is_trainer = $program['created_by'] == $user_id || $user_role == 2; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['complete_training']) && !$is_trainer) {
-    $calories_burned = $program['calories_burned'];
-   
-    // Запись о выполнении тренировки
-    $stmt = $conn->prepare("INSERT INTO training_executions (user_id, training_id, execution_date) VALUES (?, ?, NOW())");
+
+    $stmt = $conn->prepare("INSERT INTO training_requests (user_id, training_id) VALUES (?, ?)");
     $stmt->bind_param("ii", $user_id, $training_id);
     $stmt->execute();
+    
+    $_SESSION['message'] = "Запрос на выполнение отправлен тренеру.";
+    header("Location: my_training_requests.php");
+    exit();
+}
 
-    // Получаем текущие сожженные калории
     $stmt = $conn->prepare("SELECT calories_burned FROM calorie_tracker WHERE user_id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
     $current_burned_calories = $result ? $result['calories_burned'] : 0;
 
-    $new_burned_calories = $current_burned_calories + $calories_burned;
+   // $new_burned_calories = $current_burned_calories + $calories_burned;
 
-    // Обновляем или создаем запись о сожженных калориях
+    
     if ($result) {
         $stmt = $conn->prepare("UPDATE calorie_tracker SET calories_burned = ? WHERE user_id = ?");
         $stmt->bind_param("ii", $new_burned_calories, $user_id);
@@ -69,8 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['complete_training']) &
         $stmt->bind_param("ii", $user_id, $new_burned_calories);
     }
     $stmt->execute();
-    $training_completed = true;  // Успешно выполненная тренировка
-}
+    $training_completed = true;  
+
 ?>
 
 <!DOCTYPE html>
@@ -151,7 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['complete_training']) &
     <p class="duration">Длительность: <?php echo htmlspecialchars($program['duration']); ?> минут</p>
     <p class="calories">Калории: <?php echo htmlspecialchars($program['calories_burned']); ?> ккал</p>
 
-    <?php if (!$is_trainer): // Только пользователи могут ставить лайки ?>
+    <?php if (!$is_trainer): ?>
         <form method="POST" action="like_training.php">
             <input type="hidden" name="training_id" value="<?php echo htmlspecialchars($program['id']); ?>">
             <button type="submit" class="btn">
@@ -174,17 +173,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['complete_training']) &
 
     <?php if (isset($_SESSION['message'])): ?>
         <p class="message"><?php echo htmlspecialchars($_SESSION['message']); ?></p>
-        <?php unset($_SESSION['message']); // Удаляем сообщение из сессии после отображения ?>
+        <?php unset($_SESSION['message']);  ?>
     <?php endif; ?>
 </div>
 
-<?php if (isset($training_completed) && $training_completed): ?>
-    <script>
-        setTimeout(function() {
-            window.location.href = 'train_choose.php';
-        }, 2000);
-    </script>
-<?php endif; ?>
+
 
 </body>
 </html>
