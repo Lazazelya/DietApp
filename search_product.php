@@ -1,15 +1,19 @@
 <?php
 require 'db.php';
 
-if (isset($_GET['query'])) {
-    $search_query = $_GET['query'] . '%';
+$query = $_GET['query'] ?? '';
 
-    $stmt = $conn->prepare("SELECT id, name FROM food_products WHERE name LIKE ?");
-    $stmt->bind_param("s", $search_query);
+if (!empty($query)) {
+    $stmt = $conn->prepare("SELECT food_id, name FROM food_items WHERE name LIKE ?");
+    $search_term = "%" . $query . "%";
+    $stmt->bind_param("s", $search_term);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $products = $result->fetch_all(MYSQLI_ASSOC);
+    $products = [];
+    while ($row = $result->fetch_assoc()) {
+        $products[] = ['id' => $row['food_id'], 'name' => $row['name']];
+    }
 
     echo json_encode($products);
 }

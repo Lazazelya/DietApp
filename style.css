@@ -1,0 +1,95 @@
+
+.sidebar {
+  width: 3rem;              
+  height: 100vh;            
+  background-color:rgba(171, 5, 66, 0.7);
+  transition: width 0.3s;   
+  position: fixed;          
+  top: 0;                   
+  left: 0;                   
+  display: flex;
+  flex-direction: column;
+  align-items: center;       
+  color: black;
+  margin: 0;                 
+  padding: 0;              
+
+
+}
+.sidebar:hover {
+  width: 200px;
+}
+
+.sidebar a {
+  color: black;
+  margin-top: 10px;
+  text-decoration: none;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar .text {
+  display: none; 
+  margin-left: 10px;
+  transition: opacity 0.3s;
+}
+
+.sidebar:hover .text {
+  display: inline; 
+  opacity: 1;
+}
+
+.sidebar ul {
+
+  list-style: none;
+  width: 100%;
+}
+
+.sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-bottom: 10px;
+  width: 100%;
+  font-size: 16px;
+  color: black;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebar .nav-link:hover {
+  background-color:  rgba(171, 5, 66, 1);
+  color: white;
+}
+
+.sidebar .nav-link svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar .nav-link.active {
+  background-color: rgba(171, 5, 66, 1);
+  color: white;
+}
+
+.main-content {
+  margin-left: 4.5rem; 
+  padding: 20px;
+  flex-grow: 1;
+}
+.sidebar i.bi {
+  font-size: 24px; 
+  margin-left: 8px;}
+
+  .sidebar .nav-pills {
+    display: flex;
+    flex-direction: column;
+    padding-left:0;  }
+
+  .sidebar .nav-pills li {
+    width: 100%;
+  } 

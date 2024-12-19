@@ -47,49 +47,73 @@ $conn->close();
 <div class="form-container">
     <div class="form-box">
         <h2>Регистрация</h2>
+        <p>Присоединяйтесь к нашему сообществу для управления питанием и контроля калорий!</p>
         <form method="POST" action="">
             <label for="email">Email</label>
-                <input type="email" name="email" placeholder="Email" required>
+            <input type="email" name="email" placeholder="Введите ваш Email" required>
+            
             <label for="password">Пароль</label>
-                <input type="password" name="password" placeholder="Пароль" required>
-            </label><br>
+            <input type="password" name="password" placeholder="Введите ваш пароль" required>
+            
             <button type="submit">Зарегистрироваться</button>
         </form>
     </div>
 </div>
 
 <style>
+ 
     body {
-        font-family: Arial, sans-serif;
-        background-color: #bdacbb;
-    }
-    .form-container button{
-        width: 100%;
-        padding: 10px;
-        background-color: rgba(139, 83, 179, 0.62);
-        border: none;
-        color: #ffffff;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    .form-container {
-        max-width: 300px;
-        margin: 50px auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        background-color: #e1e1e1;
+       
+        margin: 0;
+        padding: 0;
+        background-color: rgba(250, 242, 245, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        color: #333;
     }
 
-    .form-container input {
+
+    .form-container {
+        max-width: 450px;
+        background-color: rgba(171, 5, 66, 0.6);
+        border: 2px solid  rgba(171, 5, 66,1);
+        padding: 20px;
+        margin: 50px auto;
+        border-radius: 10px;
+    }
+
+    .form-box input {
         width: 100%;
         padding: 10px;
-        margin: 5px 0 15px;
-        border: 1px solid #d8d7d7;
+        margin: 10px 0;
+        border: 1px solid #ccc;
         border-radius: 5px;
+        background-color: rgba(250, 242, 245, 0.8);
+        
     }
-    
-    .form-container button:hover {
-        background-color: #715ac8;
+
+    .form-box button {
+        width: 100%;
+        padding: 10px;
+        background-color: rgba(171, 5, 66, 0.7);
+        border: 2px solid  rgba(171, 5, 66,1);
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+      
+        color: white;
+    }
+
+    .form-box button:hover {
+        background-color:rgba(171, 5, 66, 1);
+    }
+
+    .form-box input:focus {
+        outline: none;
+        border-color: #66bb6a;
     }
 </style>
+

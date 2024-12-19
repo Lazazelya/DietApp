@@ -61,7 +61,7 @@ $result = $stmt->get_result();
 $users = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Список ролей
+
 $roles = [
     1 => 'Пользователь',
     2 => 'Администратор',
@@ -77,37 +77,47 @@ $roles = [
     <title>Управление пользователями</title>
     <style>
         body {
-            margin: 0;
-            background-color: #bdacbb;
-            font-family: Arial, sans-serif;
+        margin-top: 20px;
+        padding: 0;
+        background-color: rgba(250, 242, 245, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         }
         .container {
+            margin-top: 20px;
             width: 80%;
             margin: 0 auto;
             padding: 20px;
+            border: 2px solid rgba(171, 5, 66, 1);
         }
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
+        }
+        td{
+            border: 2px solid rgba(171, 5, 66, 1) !important;
         }
         th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
+            padding: 10px!important;
+            border: 2px solid rgba(171, 5, 66, 1)!important;
         }
         th {
-            background-color: rgba(139, 83, 179, 0.62);
+            background-color: rgba(171, 5, 66, 0.7);
             color: white;
         }
         button {
             padding: 10px 15px;
-            background-color: rgba(139, 83, 179, 0.62);
+            background-color: rgba(171, 5, 66, 0.7);
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #715ac8;
+            background-color: rgba(171, 5, 66, 1);
+            
         }
         .message {
             margin-bottom: 20px;
@@ -125,7 +135,6 @@ $roles = [
     </style>
 </head>
 <body>
-<?php include 'navbar.php'; ?>
 
 <div class="container">
     <h1>Управление пользователями</h1>

@@ -18,14 +18,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $gender = isset($_POST['gender']) ? $_POST['gender'] : null;
     $activity_level = isset($_POST['activity_level']) ? $_POST['activity_level'] : null;
     $errors = [];
+    
     if ($username !== null && $username === '') {
         $errors[] = "Имя пользователя не может быть пустым или состоять только из пробелов.";
+    }
+    if ($age !== null && ($age < 1 || $age > 130)) {
+        $errors[] = "Возраст должен быть от 1 до 130 лет.";
+    }
+    if ($weight !== null && ($weight < 1 || $weight > 150)) {
+        $errors[] = "Вес должен быть от 1 до 150 кг.";
+    }
+    if ($height !== null && ($height < 50 || $height > 300)) {
+        $errors[] = "Рост должен быть от 50 до 300 см.";
     }
 
     if (!empty($errors)) {
         $error_message = implode("<br>", $errors);
     } else {
-
         $update_query = "UPDATE users SET ";
         $update_params = [];
         $param_types = '';
@@ -67,7 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $param_types .= "s";
         }
 
-
         if (empty($fields)) {
             die("Нет данных для обновления.");
         }
@@ -85,6 +93,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->bind_param($param_types, ...$update_params);
 
         if ($stmt->execute()) {
+           
+            $needs_calorie_update = false;
+            if ($age !== null || $weight !== null || $height !== null || $gender !== null || $activity_level !== null) {
+                $needs_calorie_update = true;
+            }
+
+            if ($needs_calorie_update) {
+                include 'update_calories.php';
+            }
+
             $success_message = "Данные успешно обновлены!";
         } else {
             $error_message = "Ошибка обновления данных: " . $stmt->error;
@@ -101,9 +119,25 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $stmt->close();
-$conn->close();
 
+$avatar = null;
+$img_id = $user['img_id'];
+if ($img_id) {
+    $stmt = $conn->prepare("SELECT image FROM images WHERE img_id = ?");
+    $stmt->bind_param("i", $img_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
+    if ($result->num_rows > 0) {
+        $avatar = "display_avatar.php?img_id=" . $img_id;
+    } else {
+        $avatar = "display_avatar.php?img_id=1";
+    }
+
+    $stmt->close();
+} else {
+    $avatar = "display_avatar.php?img_id=1";
+}
 ?>
 
 <!DOCTYPE html>
@@ -115,14 +149,15 @@ $conn->close();
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #bdacbb;
+            background-color: rgba(250, 242, 245, 0.8);
             padding: 20px;
         }
         .profile-container {
-            max-width: 500px;
+            max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: white;
+            background-color: rgba(171, 5, 66, 0.6);
+            border: 2px solid  rgba(171, 5, 66,1);
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
@@ -140,20 +175,22 @@ $conn->close();
             width: 100%;
             padding: 8px;
             margin-top: 5px;
+            background-color: rgba(250, 242, 245, 0.8);
+            
             margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid #ccc;
         }
         button {
-            background-color: rgba(139, 83, 179, 0.62);
+            background-color: rgba(171, 5, 66, 0.7);
+            border: 2px solid  rgba(171, 5, 66,1);
             color: white;
             padding: 10px;
-            border: none;
             border-radius: 5px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #715ac8;
+            background-color:rgba(171, 5, 66, 1);
         }
         .message {
             margin-bottom: 20px;
@@ -168,12 +205,55 @@ $conn->close();
             background-color: #f8d7da;
             color: #721c24;
         }
+        .profile-avatar img {
+            display: block;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(171, 5, 66, 1);
+        }
+        .avatar-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .avatar-gallery label {
+            display: inline-block;
+            cursor: pointer;
+        }
+        .avatar-gallery img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid rgba(171, 5, 66, 1);
+            margin-bottom: 10px;
+            transition: border-color 0.3s ease;
+        }
+        .avatar-gallery input[type="radio"] {
+            display: none; 
+        }
+        .avatar-gallery input[type="radio"]:checked + img {
+            border-color: #715ac8; 
+        }
+        .avatar-gallery label:hover img {
+            border-color: #715ac8; 
+        }
     </style>
 </head>
 <body>
 
 <div class="profile-container">
     <h2>Профиль пользователя</h2>
+    <?php
+if (isset($_SESSION['error_message'])) {
+    echo "<div class='message error'>" . htmlspecialchars($_SESSION['error_message']) . "</div>";
+    unset($_SESSION['error_message']);
+}
+
+if (isset($_SESSION['success_message'])) {
+    echo "<div class='message success'>" . htmlspecialchars($_SESSION['success_message']) . "</div>";
+    unset($_SESSION['success_message']);
+}
+?>
 
     <?php if (isset($success_message)): ?>
         <div class="message success"><?php echo htmlspecialchars($success_message); ?></div>
@@ -183,6 +263,14 @@ $conn->close();
         <div class="message error"><?php echo htmlspecialchars($error_message); ?></div>
     <?php endif; ?>
 
+    <div class="profile-avatar">
+    <?php if ($avatar): ?>
+        
+        <img src="display_avatar.php?img_id=<?php echo htmlspecialchars($img_id); ?>" alt="Аватар" style="width:150px;height:150px;">
+    <?php else: ?>
+        <p>Аватар не установлен</p>
+    <?php endif; ?>
+</div>
     <form method="POST" action="">
         <div class="profile-item">
             <label>Имя пользователя:</label>
@@ -207,7 +295,6 @@ $conn->close();
         <div class="profile-item">
             <label>Пол:</label>
             <select name="gender">
-
                 <option value="male" <?php echo isset($user['gender']) && $user['gender'] === 'male' ? 'selected' : ''; ?>>Мужской</option>
                 <option value="female" <?php echo isset($user['gender']) && $user['gender'] === 'female' ? 'selected' : ''; ?>>Женский</option>
             </select>
@@ -216,7 +303,6 @@ $conn->close();
         <div class="profile-item">
             <label>Уровень активности:</label>
             <select name="activity_level">
-
                 <option value="sedentary" <?php echo isset($user['activity_level']) && $user['activity_level'] === 'sedentary' ? 'selected' : ''; ?>>Сидячий</option>
                 <option value="light" <?php echo isset($user['activity_level']) && $user['activity_level'] === 'light' ? 'selected' : ''; ?>>Легкая активность</option>
                 <option value="moderate" <?php echo isset($user['activity_level']) && $user['activity_level'] === 'moderate' ? 'selected' : ''; ?>>Умеренная активность</option>
@@ -225,10 +311,42 @@ $conn->close();
             </select>
         </div>
 
-        <button type="submit">Редактировать профиль</button>
+        <button type="submit">Сохранить изменения</button>
     </form>
 
+    <form action="upload.php" method="post" enctype="multipart/form-data">
+        <label>Загрузить новый аватар:</label>
+        <input type="file" name="avatar" accept="image/*" required>
+        <button type="submit">Загрузить</button>
+    </form>
+
+    <form action="select_avatar.php" method="post">
+    <label>Выбрать существующий аватар:</label>
+    <div class="avatar-gallery">
+    <?php
+    $stmt = $conn->prepare("SELECT img_id, image FROM images WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            echo "<label>";
+            echo "<input type='radio' name='existing_avatar' value='" . $row['img_id'] . "'>";
+            echo "<img src='display_avatar.php?img_id=" . $row['img_id'] . "' alt='Аватар' class='avatar-img'>";
+            echo "</label>";
+        }
+    } else {
+        echo "<p>Нет доступных аватаров</p>";
+    }
+
+    $stmt->close();
+    ?>
 </div>
 
+    <button type="submit">Выбрать аватар</button>
+</form>
+
+</div>
 </body>
 </html>

@@ -1,9 +1,8 @@
 <?php
-
 $servername = "localhost";
-$username = "Health";
-$password = "LNOM";
-$dbname = "HealthWeb2";
+$username = "LiyaLi";
+$password = "LRCiKm17";
+$dbname = "coursework";
 
 if (!function_exists('handleDbError')) {
     function handleDbError($message) {

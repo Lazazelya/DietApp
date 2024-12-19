@@ -22,23 +22,28 @@ if (!$is_admin) {
     echo "У вас нет прав для доступа к этой странице.";
     exit();
 }
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_product'])) {
     $name = trim($_POST['name']);
-    $calories_per_100g = $_POST['calories_per_100g'];
+    $calorie_per_100 = $_POST['calorie_per_100'];
+    $proteins = $_POST['proteins'];
+    $fats = $_POST['fats'];
+    $carbohydrates = $_POST['carbohydrates'];
 
     if (empty($name)) {
-        $error_message = "Название продукта не может состоять только из пробелов! Добавление не произошло!";
+        $error_message = "Название продукта не может быть пустым!";
     } else {
-        $stmt = $conn->prepare("SELECT id FROM food_products WHERE name = ?");
+        $stmt = $conn->prepare("SELECT food_id FROM food_items WHERE name = ?");
         $stmt->bind_param("s", $name);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
-            $error_message = "Продукт с таким же названием существует, уточните название добавляемого продукта.";
+            $error_message = "Продукт с таким названием уже существует!";
         } else {
-            $stmt = $conn->prepare("INSERT INTO food_products (name, calories_per_100g, created_at) VALUES (?, ?, NOW())");
-            $stmt->bind_param("sd", $name, $calories_per_100g);
+            $stmt = $conn->prepare("INSERT INTO food_items (name, calorie_per_100, proteins, fats, carbohydrates) VALUES (?, ?, ?, ?, ?)");
+
+            $stmt->bind_param("sdddd", $name, $calorie_per_100, $proteins, $fats, $carbohydrates);
 
             if ($stmt->execute()) {
                 $success_message = "Продукт успешно добавлен!";
@@ -49,15 +54,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_product'])) {
 
         $stmt->close();
     }
-
-
-
 }
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
     $product_id_to_delete = $_POST['product_id_to_delete'];
 
     if (!empty($product_id_to_delete)) {
-        $stmt = $conn->prepare("DELETE FROM food_products WHERE id = ?");
+        $stmt = $conn->prepare("DELETE FROM food_items WHERE food_id = ?");
         $stmt->bind_param("i", $product_id_to_delete);
 
         if ($stmt->execute() && $stmt->affected_rows > 0) {
@@ -81,14 +84,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
     <title>Управление продуктами</title>
     <style>
         body {
-            margin: 0;
-            background-color: #bdacbb;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color:rgba(250, 242, 245, 1);
         }
 
         .container {
             width: 80%;
             margin: 0 auto;
+           
             padding: 20px;
         }
 
@@ -97,6 +102,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: rgba(171, 5, 66, 0.6);
+            border: 2px solid  rgba(171, 5, 66,1);
             position: relative;
         }
 
@@ -109,6 +116,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
             width: 100%;
             padding: 10px;
             margin: 5px 0 0;
+            background-color: rgba(250, 242, 245, 1);
             border: 1px solid #ddd;
             border-radius: 5px;
         }
@@ -116,7 +124,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
         button {
             margin-top: 10px;
             padding: 10px 15px;
-            background-color: rgba(139, 83, 179, 0.62);
+            background-color: rgba(171, 5, 66, 0.8);
+            border: 2px solid  rgba(171, 5, 66,1);
             color: white;
             border: none;
             border-radius: 5px;
@@ -124,7 +133,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
         }
 
         button:hover {
-            background-color: #715ac8;
+            background-color:rgba(171, 5, 66,1)
         }
 
         .message {
@@ -148,9 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
             max-height: 150px;
             background-color: #fff;
             position: absolute;
-
             width: 97%;
-
             overflow-y: auto;
             margin-top: 0;
             padding: 0;
@@ -163,14 +170,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
         }
 
         #product_suggestions li:hover {
-            background-color: rgba(139, 83, 179, 0.62);
+            background-color:rgba(171, 5, 66, 1);
             color: #fff;
         }
 
     </style>
 </head>
 <body>
-<?php include 'navbar.php'; ?>
 
 <div class="container">
     <h1>Управление продуктами</h1>
@@ -188,8 +194,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
         <label for="name">Название продукта:</label>
         <input type="text" id="name" name="name" required>
 
-        <label for="calories_per_100g">Калории на 100 грамм:</label>
-        <input type="number" id="calories_per_100g" min="1" name="calories_per_100g" step="0.01" required>
+        <label for="calorie_per_100">Калории на 100 грамм:</label>
+        <input type="number" id="calorie_per_100" name="calorie_per_100" step="0.01" required>
+
+        <label for="proteins">Белки на 100 грамм:</label>
+        <input type="number" id="proteins" name="proteins" step="0.01" required>
+
+        <label for="fats">Жиры на 100 грамм:</label>
+        <input type="number" id="fats" name="fats" step="0.01" required>
+
+        <label for="carbohydrates">Углеводы на 100 грамм:</label>
+        <input type="number" id="carbohydrates" name="carbohydrates" step="0.01" required>
 
         <button type="submit" name="add_product">Добавить продукт</button>
     </form>
@@ -199,20 +214,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
         <label for="name_to_delete">Начните вводить название продукта для удаления:</label>
         <input type="text" id="name_to_delete" name="name_to_delete" autocomplete="off" required>
 
-        <!-- Скрытое поле для хранения ID выбранного продукта -->
         <input type="hidden" id="product_id_to_delete" name="product_id_to_delete">
 
-        <ul id="product_suggestions" style="list-style-type:none; padding-left: 0;"></ul>
+        <ul id="product_suggestions"></ul>
 
         <button type="submit" name="delete_product">Удалить продукт</button>
     </form>
 
     <script>
-
         document.getElementById('name_to_delete').addEventListener('input', function() {
             let query = this.value;
 
-            if (query.length > 0) { // Измените 1 на 0, чтобы искать начиная с 1 символа
+            if (query.length > 0) {
                 fetch(`search_product.php?query=${query}`)
                     .then(response => response.json())
                     .then(data => {
@@ -227,7 +240,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
                             listItem.addEventListener('click', function() {
                                 document.getElementById('name_to_delete').value = this.textContent;
                                 document.getElementById('product_id_to_delete').value = this.getAttribute('data-id');
-                                suggestionBox.innerHTML = '';  // Очищаем список предложений
+                                suggestionBox.innerHTML = '';
                             });
 
                             suggestionBox.appendChild(listItem);
@@ -236,7 +249,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_product'])) {
             } else {
                 document.getElementById('product_suggestions').innerHTML = '';
             }
-
         });
     </script>
 </div>
